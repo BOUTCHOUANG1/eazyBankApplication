@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class CardsController {
-    @GetMapping("/welcome")
-    public String welcomeMessage() {
-        return "Welcome to Spring Security with security REST API!";
+    @GetMapping("/myCards")
+    public String getCardsDetails() {
+        return "Here are the cards details from the DB!";
     }
 }

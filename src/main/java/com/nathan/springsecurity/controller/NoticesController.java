@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class NoticesController {
-    @GetMapping("/welcome")
-    public String welcomeMessage() {
-        return "Welcome to Spring Security with security REST API!";
+    @GetMapping("/Notices")
+    public String getNoticesDetails() {
+        return "Here are the Notices details from the DB!";
     }
 }

@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ContactController {
-    @GetMapping("/welcome")
-    public String welcomeMessage() {
-        return "Welcome to Spring Security with security REST API!";
+    @GetMapping("/contact")
+    public String saveContactInquiryDetails() {
+        return "Inquiry details are saved to the DB!";
     }
 }
