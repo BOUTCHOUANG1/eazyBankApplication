@@ -4,6 +4,7 @@ import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.password.CompromisedPasswordChecker;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.password.HaveIBeenPwnedRestApiPasswordChecker;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -44,15 +46,37 @@ public class ProjectSecurityConfig {
      */
     @Bean
     public UserDetailsService userDetailsService() {
-        UserDetails user = User.withUsername("user").password("{noop}12345").roles("read").build();
+        UserDetails user = User.withUsername("user").password("{noop}Nathan@!12345").roles("read").build();
         UserDetails admin = User.withUsername("admin")
-                .password("{bcrypt}$2a$12$TVv1Q86DjrbwWz4Wk7bLseHmGP.4vsYjrxdjF3vS52brTnpcGTUNa").roles("admin").build();
+                .password("{bcrypt}$2a$12$duobVqmqP5aS4rUyBYdZ9umVpUBGNro8AoS7UMpp8uxlPpzDDlmMq").roles("admin").build();
         return new InMemoryUserDetailsManager(user, admin);
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    /**
+     * Compromised password checker based on the HaveIBeenPwned breach data set.
+     *
+     * This bean is used to check if a password has been involved in a known breach.
+     *
+     * The implementation is based on the HaveIBeenPwned API, which is a free service that aggregates data from various sources.
+     *
+     * The API is called for each password that is being checked, and the response is cached for a short period of time (30 minutes).
+     *
+     * The password is sent to the API as a SHA-1 hash, and the response is a list of hashes that have been involved in a breach.
+     *
+     * The list of hashes is then checked against the hash of the password that is being checked.
+     *
+     * If the password has been involved in a breach, the checker will throw a PasswordInBreachException {@link "https://api.pwnedpasswords.com/range/"}.
+     *
+     * @return the compromised password checker
+     */
+    @Bean
+    public CompromisedPasswordChecker compromisedPasswordChecker() {
+        return new HaveIBeenPwnedRestApiPasswordChecker();
     }
 }
 
