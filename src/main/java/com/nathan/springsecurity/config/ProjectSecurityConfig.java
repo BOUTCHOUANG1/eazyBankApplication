@@ -26,6 +26,19 @@ public class ProjectSecurityConfig {
         http.httpBasic(withDefaults());
         return http.build();
     }
+    /**
+     * In-memory user details service that provides two users: user and admin.
+     *
+     * <p>This is a very simple implementation that is not suitable for production. It is only used for testing and development.
+     *
+     * <p>user has the role "read" and the password is "12345"
+     *
+     * <p>admin has the role "admin" and the password is "54321"
+     *
+     * the "{noop}" prefix means that the password is not hashed, it is the plain text password
+     *
+     * @return the user details service
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         UserDetails user = User.withUsername("user").password("{noop}12345").roles("read").build();
