@@ -19,11 +19,14 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class ProjectSecurityProdConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.requiresChannel(rrc -> rrc.anyRequest().requiresSecure())
+        http.sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession")
+                        .maximumSessions(1).maxSessionsPreventsLogin(true)
+                        .expiredUrl("/expired"))
+                .requiresChannel(rrc -> rrc.anyRequest().requiresSecure())
                 .csrf(csrfConfig -> csrfConfig.disable())
                 .authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards").authenticated()
-                .requestMatchers("/notices", "/contact", "/error", "/register").permitAll());
+                .requestMatchers("/notices", "/contact", "/error", "/register", "/invalidSession").permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(hpc -> hpc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
        // http.exceptionHandling(ehc -> ehc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));

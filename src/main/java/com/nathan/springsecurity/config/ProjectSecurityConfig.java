@@ -19,16 +19,23 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class ProjectSecurityConfig {
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.requiresChannel(rrc -> rrc.anyRequest().requiresInsecure())
+        http.sessionManagement(smc -> smc
+                        .sessionFixation(sfc -> sfc.newSession())
+                        .invalidSessionUrl("/invalidSession")
+                        .maximumSessions(3).maxSessionsPreventsLogin(true)
+                        .expiredUrl("expiredSession"))
+                .requiresChannel(rrc -> rrc.anyRequest().requiresInsecure())
                 .csrf(csrfConfig -> csrfConfig.disable())
                 .authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards").authenticated()
-                .requestMatchers("/notices", "/contact", "/error", "/register").permitAll());
+                .requestMatchers("/notices", "/contact", "/error", "/register", "invalidSession").permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(hpc -> hpc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.httpBasic(hpc -> hpc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         // http.exceptionHandling(ehc -> ehc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
-        http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
+        http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler())
+              .accessDeniedPage("/denied")
+        );
         return http.build();
     }
     /**
