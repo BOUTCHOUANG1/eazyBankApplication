@@ -5,10 +5,14 @@ import com.nathan.springsecurity.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -35,8 +39,14 @@ public class UserController {
 
         }catch(Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("An exception occured" + e.getMessage());
+                    .body("An exception occurred" + e.getMessage());
 
         }
+    }
+
+    @RequestMapping("/user")
+    public Customer getUserDetailsAfterLogin(Authentication authentication) {
+        Optional<Customer> optionalCustomer = customerRepository.findByEmail(authentication.getName());
+        return optionalCustomer.orElse(null);
     }
 }

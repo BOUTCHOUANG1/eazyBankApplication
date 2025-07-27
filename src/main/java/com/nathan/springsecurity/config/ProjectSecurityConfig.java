@@ -23,12 +23,12 @@ public class ProjectSecurityConfig {
                         .sessionFixation(sfc -> sfc.newSession())
                         .invalidSessionUrl("/invalidSession")
                         .maximumSessions(3).maxSessionsPreventsLogin(true)
-                        .expiredUrl("expiredSession"))
+                        .expiredUrl("/expiredSession"))
                 .requiresChannel(rrc -> rrc.anyRequest().requiresInsecure())
                 .csrf(csrfConfig -> csrfConfig.disable())
                 .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards").authenticated()
-                .requestMatchers("/notices", "/contact", "/error", "/register", "invalidSession").permitAll());
+                .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
+                .requestMatchers("/notices", "/contact", "/error", "/register", "/invalidSession").permitAll());
         http.formLogin(withDefaults());
         http.httpBasic(hpc -> hpc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.httpBasic(hpc -> hpc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
