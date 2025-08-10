@@ -2,6 +2,9 @@ package com.nathan.springsecurity.config;
 
 import com.nathan.springsecurity.exceptionHandling.CustomAccessDeniedHandler;
 import com.nathan.springsecurity.exceptionHandling.CustomBasicAuthenticationEntryPoint;
+import com.nathan.springsecurity.filter.AuthoritiesLoggingAfterFilter;
+import com.nathan.springsecurity.filter.AuthoritiesLoggingAtFilter;
+import com.nathan.springsecurity.filter.RequestValidationBeforeFilter;
 import com.nathan.springsecurity.filter.csrfCookieFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +41,12 @@ public class ProjectSecurityProdConfig {
         http.csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .ignoringRequestMatchers("/register", "/contact")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
-                .addFilterAfter(new csrfCookieFilter(), BasicAuthenticationFilter.class);
+                .addFilterAfter(new csrfCookieFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class);
+
+
 
 
         http.cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {

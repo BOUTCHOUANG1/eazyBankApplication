@@ -2,6 +2,9 @@ package com.nathan.springsecurity.config;
 
 import com.nathan.springsecurity.exceptionHandling.CustomAccessDeniedHandler;
 import com.nathan.springsecurity.exceptionHandling.CustomBasicAuthenticationEntryPoint;
+import com.nathan.springsecurity.filter.AuthoritiesLoggingAfterFilter;
+import com.nathan.springsecurity.filter.AuthoritiesLoggingAtFilter;
+import com.nathan.springsecurity.filter.RequestValidationBeforeFilter;
 import com.nathan.springsecurity.filter.csrfCookieFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -70,6 +73,9 @@ public class ProjectSecurityConfig {
                         .ignoringRequestMatchers("/register", "/contact")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .addFilterAfter(new csrfCookieFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
 
 
                 /*
