@@ -25,7 +25,7 @@ public class EazyBankUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
       Customer customer = customerRepository.findByEmail(username)
-              .orElseThrow(() -> new UsernameNotFoundException("username not found" + username));
+              .orElseThrow(() -> new UsernameNotFoundException("username not found for" + username));
 
       var authorities = List.of(new SimpleGrantedAuthority(customer.getRole()));
       return new User(customer.getEmail(), customer.getPwd(), authorities);
