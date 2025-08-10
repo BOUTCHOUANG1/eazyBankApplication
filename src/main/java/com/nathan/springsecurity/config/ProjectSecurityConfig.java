@@ -141,7 +141,11 @@ public class ProjectSecurityConfig {
                  */
                 .requiresChannel(rrc -> rrc.anyRequest().requiresInsecure())
                 .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/myAccount", "/myBalance", "/myLoans", "/myCards", "/user").authenticated()
+                .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+                .requestMatchers("/myBalance").hasAnyAuthority("VIEWBALANCE", "VIEWACCOUNT")
+                .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
+                .requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+                .requestMatchers("/user").authenticated()
                 .requestMatchers("/notices", "/contact", "/error", "/register", "/invalidSession").permitAll());
 
         /*
