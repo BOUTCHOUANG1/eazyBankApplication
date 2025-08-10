@@ -140,11 +140,17 @@ public class ProjectSecurityConfig {
                   The permitAll() method is used to specify that the requests do not require authentication.
                  */
                 .requiresChannel(rrc -> rrc.anyRequest().requiresInsecure())
+
                 .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
+
+                /*.requestMatchers("/myAccount").hasAuthority("VIEWACCOUNT")
                 .requestMatchers("/myBalance").hasAnyAuthority("VIEWBALANCE", "VIEWACCOUNT")
                 .requestMatchers("/myLoans").hasAuthority("VIEWLOANS")
-                .requestMatchers("/myCards").hasAuthority("VIEWCARDS")
+                .requestMatchers("/myCards").hasAuthority("VIEWCARDS")*/
+                        .requestMatchers("/myAccount").hasRole("USER")
+                        .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/myLoans").hasRole("USER")
+                        .requestMatchers("/myCards").hasRole("USER")
                 .requestMatchers("/user").authenticated()
                 .requestMatchers("/notices", "/contact", "/error", "/register", "/invalidSession").permitAll());
 
