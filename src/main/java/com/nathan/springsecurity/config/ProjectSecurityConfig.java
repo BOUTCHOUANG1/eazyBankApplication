@@ -2,10 +2,7 @@ package com.nathan.springsecurity.config;
 
 import com.nathan.springsecurity.exceptionHandling.CustomAccessDeniedHandler;
 import com.nathan.springsecurity.exceptionHandling.CustomBasicAuthenticationEntryPoint;
-import com.nathan.springsecurity.filter.AuthoritiesLoggingAfterFilter;
-import com.nathan.springsecurity.filter.AuthoritiesLoggingAtFilter;
-import com.nathan.springsecurity.filter.RequestValidationBeforeFilter;
-import com.nathan.springsecurity.filter.csrfCookieFilter;
+import com.nathan.springsecurity.filter.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -22,6 +19,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -49,8 +47,8 @@ public class ProjectSecurityConfig {
           is handled by the browser and the request is sent from the Angular application, so we need to save the security context
           automatically when the user's authentication information changes.
          */
-        http.securityContext(sc -> sc
-                .requireExplicitSave(false));
+        /*http.securityContext(sc -> sc
+                .requireExplicitSave(false));*
 
         /*
           This code block is used to configure the CSRF (Cross-Site Request Forgery) protection.
@@ -73,6 +71,8 @@ public class ProjectSecurityConfig {
                         .ignoringRequestMatchers("/register", "/contact")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .addFilterAfter(new csrfCookieFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
                 .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class)
@@ -95,6 +95,7 @@ public class ProjectSecurityConfig {
                     config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
                     config.setAllowedMethods(Collections.singletonList("*"));
                     config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setExposedHeaders(Arrays.asList("Authorization"));
                     config.setAllowCredentials(true);
                     config.setMaxAge(3600L);
                     return config;
@@ -119,7 +120,7 @@ public class ProjectSecurityConfig {
                   The lambda expression is also used to set the expired URL to "/expiredSession", which means that the user will be redirected to this URL when the session is expired.
                  */
                 .sessionManagement(smc -> smc
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::newSession)
                         .invalidSessionUrl("/invalidSession")
                         .maximumSessions(3).maxSessionsPreventsLogin(true)

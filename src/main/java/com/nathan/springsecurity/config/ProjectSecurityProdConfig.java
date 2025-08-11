@@ -2,10 +2,7 @@ package com.nathan.springsecurity.config;
 
 import com.nathan.springsecurity.exceptionHandling.CustomAccessDeniedHandler;
 import com.nathan.springsecurity.exceptionHandling.CustomBasicAuthenticationEntryPoint;
-import com.nathan.springsecurity.filter.AuthoritiesLoggingAfterFilter;
-import com.nathan.springsecurity.filter.AuthoritiesLoggingAtFilter;
-import com.nathan.springsecurity.filter.RequestValidationBeforeFilter;
-import com.nathan.springsecurity.filter.csrfCookieFilter;
+import com.nathan.springsecurity.filter.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +20,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -35,8 +33,8 @@ public class ProjectSecurityProdConfig {
 
         CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
 
-        http.securityContext(sc -> sc
-                .requireExplicitSave(false));
+//        http.securityContext(sc -> sc
+//                .requireExplicitSave(false));
 
         http.csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .ignoringRequestMatchers("/register", "/contact")
@@ -44,6 +42,8 @@ public class ProjectSecurityProdConfig {
                 .addFilterAfter(new csrfCookieFilter(), BasicAuthenticationFilter.class)
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new AuthoritiesLoggingAfterFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JWTTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JWTTokenValidatorFilter(), BasicAuthenticationFilter.class)
                 .addFilterAt(new AuthoritiesLoggingAtFilter(), BasicAuthenticationFilter.class);
 
 
@@ -56,6 +56,7 @@ public class ProjectSecurityProdConfig {
                         config.setAllowedOrigins(Collections.singletonList("https://localhost:4200"));
                         config.setAllowedMethods(Collections.singletonList("*"));
                         config.setAllowedHeaders(Collections.singletonList("*"));
+                        config.setExposedHeaders(Arrays.asList("Authorization"));
                         config.setAllowCredentials(true);
                         config.setMaxAge(3600L);
                         return config;
@@ -63,7 +64,7 @@ public class ProjectSecurityProdConfig {
                 }))
 
                 .sessionManagement(smc -> smc
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .invalidSessionUrl("/invalidSession")
                         .maximumSessions(1).maxSessionsPreventsLogin(true)
                         .expiredUrl("/expired"))
