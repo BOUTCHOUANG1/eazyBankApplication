@@ -1,14 +1,14 @@
 package com.nathan.springsecurity.config;
 
 import com.nathan.springsecurity.exceptionHandling.CustomAccessDeniedHandler;
-import com.nathan.springsecurity.exceptionHandling.CustomBasicAuthenticationEntryPoint;
-import com.nathan.springsecurity.filter.*;
+import com.nathan.springsecurity.filter.csrfCookieFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.SessionManagementConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -18,13 +18,23 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
 @Configuration
 @Profile("!prod")
 public class ProjectSecurityConfig {
+
+    /*@Value("${spring.security.oauth2.resourceserver.opaque.introspection-uri}")
+    String introspectionUri;
+
+    @Value("${spring.security.oauth2.resourceserver.opaque.introspection-client-id}")
+    String clientId;
+
+    @Value("${spring.security.oauth2.resourceserver.opaque.introspection-client-secret}")
+    String clientSecret;*/
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KeycloakRoleConverter());
 
         /*
           This bean is used to handle the Csrf token request attribute.
@@ -119,8 +129,8 @@ public class ProjectSecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                         .sessionFixation(SessionManagementConfigurer.SessionFixationConfigurer::newSession)
                         .invalidSessionUrl("/invalidSession")
-                        .maximumSessions(3).maxSessionsPreventsLogin(true)
-                        .expiredUrl("/expiredSession"))
+                        .maximumSessions(3).maxSessionsPreventsLogin(false)
+                        .expiredUrl("/expiredSession"));
 
 
                 /*
@@ -142,7 +152,7 @@ public class ProjectSecurityConfig {
                   The authenticated() method is used to specify that the requests require authentication.
                   The permitAll() method is used to specify that the requests do not require authentication.
                  */
-                .requiresChannel(rrc -> rrc.anyRequest().requiresInsecure())
+                http.requiresChannel(rrc -> rrc.anyRequest().requiresInsecure())
 
                 .authorizeHttpRequests((requests) -> requests
 
@@ -155,7 +165,7 @@ public class ProjectSecurityConfig {
                         .requestMatchers("/myLoans").authenticated()
                         .requestMatchers("/myCards").hasRole("USER")
                 .requestMatchers("/user").authenticated()
-                .requestMatchers("/notices", "/contact", "/error", "/register", "/invalidSession", "/apiLogin").permitAll());
+                .requestMatchers("/notices", "/contact", "/error", "/register").permitAll());
 
         /*
           This code block is used to configure the form login.
@@ -175,7 +185,11 @@ public class ProjectSecurityConfig {
           The default failure URL can be overridden using the failureUrl() method.
           The default success URL can be overridden using the defaultSuccessUrl() method.
          */
-        http.formLogin(withDefaults());
+        //http.formLogin(withDefaults());
+        http.oauth2ResourceServer(rsc -> rsc.jwt(jwtConfigurer ->
+                jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
+        /*http.oauth2ResourceServer(rsc -> rsc.opaqueToken(otc -> otc.authenticationConverter(new KeycloakOpaqueRoleConverter())
+                .introspectionUri(this.introspectionUri).introspectionClientCredentials(this.clientId,this.clientSecret)));*/
 
         /*
           This code block is used to configure the HTTP Basic authentication.
@@ -213,7 +227,7 @@ public class ProjectSecurityConfig {
           The entry point is also used to handle any exceptions that may occur during the authentication process.
          */
 
-        http.httpBasic(hpc -> hpc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
+        //http.httpBasic(hpc -> hpc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
 
         // http.exceptionHandling(ehc -> ehc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         /*
